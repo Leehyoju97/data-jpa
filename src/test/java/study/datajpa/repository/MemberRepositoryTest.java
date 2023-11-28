@@ -151,4 +151,25 @@ public class MemberRepositoryTest {
         assertThat(page.isFirst()).isTrue();
         assertThat(page.hasNext()).isTrue();
     }
+
+    @Test
+    public void bulkUpdate() throws Exception {
+        //given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 19));
+        memberRepository.save(new Member("member3", 20));
+        memberRepository.save(new Member("member4", 21));
+        memberRepository.save(new Member("member5", 40));
+
+        //when
+        int resultCount = memberRepository.bulkAgePlus(20); // 벌크 연산
+
+        List<Member> result = memberRepository.findByUsername("member5");
+        Member member5 = result.get(0);
+        System.out.println("member5 = " + member5); // 40으로 출력 1차 캐시에는 40 db에는 41로 저장되어 있음
+        // 즉 벌크연산 후에는 영속성 컨텍스트를 날려야 한다. ex) em.clear(), clearAutomatically = true
+
+        //then
+        assertThat(resultCount).isEqualTo(3);
+    }
 }
