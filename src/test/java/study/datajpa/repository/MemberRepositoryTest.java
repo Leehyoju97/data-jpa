@@ -193,8 +193,8 @@ public class MemberRepositoryTest {
         em.flush();
         em.clear();
 
-        // n + 1 문제 발생
-        List<Member> members = memberRepository.findAll();
+        // n + 1 문제 fetch join으로 해결
+        List<Member> members = memberRepository.findMemberFetchJoin();
 
         for (Member member : members) {
             System.out.println("member = " + member.getUsername());
