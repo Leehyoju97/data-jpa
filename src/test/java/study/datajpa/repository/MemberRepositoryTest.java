@@ -194,7 +194,7 @@ public class MemberRepositoryTest {
         em.clear();
 
         // n + 1 문제 fetch join으로 해결
-        List<Member> members = memberRepository.findMemberFetchJoin();
+        List<Member> members = memberRepository.findAll();
 
         for (Member member : members) {
             System.out.println("member = " + member.getUsername());
