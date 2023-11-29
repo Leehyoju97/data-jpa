@@ -1,6 +1,7 @@
 package study.datajpa.repository;
 
 import org.assertj.core.api.Assertions;
+import org.hibernate.Hibernate;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,6 +14,9 @@ import study.datajpa.dto.MemberDto;
 import study.datajpa.entity.Member;
 import study.datajpa.entity.Team;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.PersistenceUnitUtil;
 import java.util.Arrays;
 import java.util.List;
 
@@ -22,6 +26,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Transactional
 @Rollback(false)
 public class MemberRepositoryTest {
+
+    @PersistenceContext
+    private EntityManager em;
 
     @Autowired
     MemberRepository memberRepository;
@@ -171,5 +178,36 @@ public class MemberRepositoryTest {
 
         //then
         assertThat(resultCount).isEqualTo(3);
+    }
+
+    @Test
+    public void findMemberLazy() throws Exception {
+        //given
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+        teamRepository.save(teamA);
+        teamRepository.save(teamB);
+        memberRepository.save(new Member("member1", 10, teamA));
+        memberRepository.save(new Member("member2", 20, teamB));
+
+        em.flush();
+        em.clear();
+
+        // n + 1 문제 발생
+        List<Member> members = memberRepository.findAll();
+
+        for (Member member : members) {
+            System.out.println("member = " + member.getUsername());
+            System.out.println("member.getTeam().getClass() = " + member.getTeam().getClass()); // team이 프록시인지 확인
+            System.out.println("member.getTeam().getName() = " + member.getTeam().getName()); // team이 프록시인지 확인 프록시이면 n번 select문 출력
+
+            System.out.println("==================");
+            System.out.println("하이버네이트 기능으로 지연 로딩 여부 확인");
+            System.out.println("Hibernate.isInitialized(member) : " + Hibernate.isInitialized(member));
+
+            System.out.println("Jpa 표준 방법으로 지연 로딩 여부 확인");
+            PersistenceUnitUtil util = em.getEntityManagerFactory().getPersistenceUnitUtil();
+            System.out.println("util.isLoaded(member.getTeam()): " + util.isLoaded(member.getTeam()));
+        }
     }
 }
