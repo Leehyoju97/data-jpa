@@ -210,4 +210,10 @@ public class MemberRepositoryTest {
             System.out.println("util.isLoaded(member.getTeam()): " + util.isLoaded(member.getTeam()));
         }
     }
+
+    @Test
+    public void callCustom() {
+        List<Member> result = memberRepository.findMemberCustom();
+        System.out.println("result = " + result);
+    }
 }
